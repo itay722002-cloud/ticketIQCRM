@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TicketIQ — ניהול פניות לקוחות</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; padding:28px; font-family:"Segoe UI",Arial,sans-serif; background:#f4f6fa; color:#1c2333; }
+  h1 { margin:0 0 4px; font-size:28px; color:#1a3a8f; }
+  .sub { color:#6b7488; margin-bottom:22px; }
+  .card { background:#fff; border:1px solid #e2e6ee; border-radius:10px; padding:16px; margin-bottom:18px; }
+  form { display:flex; flex-wrap:wrap; gap:10px; }
+  input, select, button { font:inherit; padding:9px 12px; border:1px solid #e2e6ee; border-radius:8px; background:#fff; }
+  input { flex:1 1 200px; }
+  button { cursor:pointer; }
+  form button { background:#1a3a8f; color:#fff; border-color:#1a3a8f; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:right; padding:11px; border-bottom:1px solid #e2e6ee; }
+  th { color:#6b7488; font-size:13px; font-weight:600; }
+  tr.גבוהה  td { background:#ffe3e3; }
+  tr.בינונית td { background:#ffe8cc; }
+  tr.נמוכה  td { background:#d3f9d8; }
+  td button { padding:5px 12px; font-size:13px; background:#fff; }
+  .closed { color:#6b7488; font-size:13px; }
+  .msg { color:#c92a2a; }
+</style>
+</head>
+<body>
+
+<h1>🎫 TicketIQ</h1>
+<div class="sub">מערכת לניהול פניות לקוחות</div>
+
+<div class="card">
+  <form id="add">
+    <input name="name_customer" placeholder="שם הלקוח" required>
+    <input name="subject" placeholder="נושא הפנייה" required>
+    <select name="priority">
+      <option>גבוהה</option><option selected>בינונית</option><option>נמוכה</option>
+    </select>
+    <button>הוסף</button>
+  </form>
+</div>
+
+<div class="card">
+  <div id="msg" class="msg"></div>
+  <table>
+    <thead><tr><th>לקוח</th><th>נושא</th><th>עדיפות</th><th>סטטוס</th><th>נפתחה</th><th></th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const db = supabase.createClient(
+  'https://skhuhvxqmawbjvifvxnz.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNraHVodnhxbWF3Ymp2aWZ2eG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0Nzc5OTAsImV4cCI6MjEwMTA1Mzk5MH0.Yq4uUfx6AmpkLhu7trFUVnhYYdANBLL-kyx85CST1AM'
+);
+
+const rows = document.getElementById('rows');
+const msg = document.getElementById('msg');
+const esc = s => String(s ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+
+async function load() {
+  const { data, error } = await db.from('tickets').select('*').order('created_at', { ascending: false });
+  msg.textContent = error ? 'שגיאה בטעינה: ' + error.message : '';
+  rows.innerHTML = (data || []).map(t => `
+    <tr class="${esc(t.priority)}">
+      <td>${esc(t.name_customer)}</td>
+      <td>${esc(t.subject)}</td>
+      <td>${esc(t.priority)}</td>
+      <td>${esc(t.status)}</td>
+      <td>${t.created_at ? new Date(t.created_at).toLocaleDateString('he-IL') : ''}</td>
+      <td>${t.status === 'סגור' ? '<span class="closed">—</span>' : `<button onclick="close_(${t.id})">✓ סגור</button>`}</td>
+    </tr>`).join('') || '<tr><td colspan="6">אין פניות להצגה</td></tr>';
+}
+
+async function close_(id) {
+  const { error } = await db.from('tickets').update({ status: 'סגור' }).eq('id', id);
+  if (error) msg.textContent = 'שגיאה בעדכון: ' + error.message;
+  load();
+}
+
+document.getElementById('add').onsubmit = async e => {
+  e.preventDefault();
+  const t = Object.fromEntries(new FormData(e.target));
+  const { error } = await db.from('tickets').insert({ ...t, status: 'פתוח' });
+  if (error) return msg.textContent = 'שגיאה בהוספה: ' + error.message;
+  e.target.reset();
+  load();
+};
+
+load();
+</script>
+</body>
+</html>
