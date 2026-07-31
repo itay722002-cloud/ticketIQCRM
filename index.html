@@ -16,6 +16,7 @@
     --border: #e2e6ee;
     --success: #10b981;
     --danger: #ef4444;
+    --warning: #f59e0b;
     --high: #fee2e2;
     --medium: #fed7aa;
     --low: #dcfce7;
@@ -49,6 +50,8 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
   }
 
   h1 {
@@ -78,6 +81,34 @@
     opacity: 0.9;
   }
 
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 4px;
+  }
+
   .card {
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -100,7 +131,7 @@
     gap: 12px;
   }
 
-  input, select, button {
+  input, select, button, textarea {
     font: inherit;
     padding: 12px 14px;
     border: 1px solid var(--border);
@@ -110,13 +141,13 @@
     transition: border-color 0.3s, background 0.3s;
   }
 
-  input:focus, select:focus {
+  input:focus, select:focus, textarea:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-light);
   }
 
-  input::placeholder {
+  input::placeholder, textarea::placeholder {
     color: var(--text-light);
   }
 
@@ -150,12 +181,13 @@
     min-width: 200px;
   }
 
-  .sort-controls {
+  .filter-controls, .action-controls {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
   }
 
-  .sort-controls button {
+  .filter-controls button, .action-controls button {
     background: var(--primary-light);
     color: var(--primary);
     border-color: var(--primary);
@@ -164,12 +196,12 @@
     flex: 0 1 auto;
   }
 
-  .sort-controls button.active {
+  .filter-controls button.active, .action-controls button.active {
     background: var(--primary);
     color: white;
   }
 
-  .sort-controls button:hover {
+  .filter-controls button:hover, .action-controls button:hover {
     background: var(--primary);
     color: white;
   }
@@ -213,6 +245,7 @@
     cursor: pointer;
     font-weight: 600;
     transition: background 0.3s;
+    margin-left: 4px;
   }
 
   td button:hover {
@@ -224,11 +257,30 @@
     font-size: 13px;
   }
 
+  .status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .status-פתוח { background: #dcfce7; color: #166534; }
+  .status-בטיפול { background: #fef3c7; color: #92400e; }
+  .status-ממתין { background: #fed7aa; color: #7c2d12; }
+  .status-סגור { background: #f1f5f9; color: #475569; }
+
+  .time-metric {
+    font-size: 12px;
+    color: var(--text-light);
+  }
+
   .msg {
     color: var(--danger);
     margin-bottom: 12px;
     padding: 12px;
     border-radius: 6px;
+    display: none;
   }
 
   .msg.success {
@@ -240,16 +292,30 @@
     background: var(--high);
   }
 
+  .msg.warning {
+    color: #92400e;
+    background: #fef3c7;
+  }
+
   .empty-state {
     text-align: center;
     color: var(--text-light);
     padding: 40px 20px;
   }
 
+  .category-tag {
+    display: inline-block;
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin: 2px;
+  }
+
   @media (max-width: 768px) {
     .header {
       flex-direction: column;
-      gap: 16px;
       align-items: flex-start;
     }
 
@@ -261,7 +327,7 @@
       flex-direction: column;
     }
 
-    form input, form select, form button {
+    form input, form select, form button, form textarea {
       width: 100%;
     }
 
@@ -269,8 +335,17 @@
       flex-direction: column;
     }
 
-    .sort-controls {
+    .filter-controls, .action-controls {
       width: 100%;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    th, td {
+      padding: 10px;
+      font-size: 13px;
     }
   }
 </style>
@@ -280,31 +355,56 @@
 <div class="header">
   <div>
     <h1>🎫 TicketIQ</h1>
-    <div class="sub">מערכת לניהול פניות לקוחות</div>
+    <div class="sub">מערכת לניהול פניות לקוחות מתקדמת</div>
   </div>
   <button class="theme-toggle" onclick="toggleTheme()">🌙 ערכת נושא</button>
 </div>
 
+<div class="stats-grid" id="stats"></div>
+
 <div class="card">
+  <h3 style="margin-top:0;">הוסף פנייה חדשה</h3>
   <form id="add">
-    <input name="customer_name" placeholder="שם הלקוח" required>
-    <input name="subject" placeholder="נושא הפנייה" required>
-    <select name="priority">
-      <option>גבוהה</option><option selected>בינונית</option><option>נמוכה</option>
-    </select>
-    <button type="submit">➕ הוסף פנייה</button>
+    <div style="flex:1;">
+      <input name="customer_name" placeholder="שם הלקוח" required>
+    </div>
+    <div style="flex:1;">
+      <input name="phone" placeholder="טלפון" type="tel">
+    </div>
+    <div style="flex:1;">
+      <input name="subject" placeholder="נושא הפנייה" required>
+    </div>
+    <div style="flex:0 1 auto;">
+      <select name="priority">
+        <option>גבוהה</option><option selected>בינונית</option><option>נמוכה</option>
+      </select>
+    </div>
+    <div style="flex:0 1 auto;">
+      <select name="category">
+        <option value="">בחר קטגוריה</option>
+        <option>טכני</option><option>חיוב</option><option>משלוח</option><option>מוצר</option><option>אחר</option>
+      </select>
+    </div>
+    <button type="submit" style="flex:0 1 auto;">➕ הוסף</button>
   </form>
 </div>
 
 <div class="card">
-  <div id="msg" class="msg" style="display:none;"></div>
+  <div id="msg" class="msg"></div>
 
   <div class="controls">
-    <input type="text" id="search" class="search-box" placeholder="🔍 חפש לפי שם, נושא או עדיפות...">
-    <div class="sort-controls">
+    <input type="text" id="search" class="search-box" placeholder="🔍 חפש לפי שם, נושא, טלפון או קטגוריה...">
+    <div class="filter-controls">
+      <button onclick="filterStatus('all')" class="active">📊 הכל</button>
+      <button onclick="filterStatus('פתוח')">🟢 פתוח</button>
+      <button onclick="filterStatus('בטיפול')">🟡 בטיפול</button>
+      <button onclick="filterStatus('ממתין')">🟠 ממתין</button>
+      <button onclick="filterStatus('סגור')">⚫ סגור</button>
+    </div>
+    <div class="action-controls">
+      <button onclick="exportCSV()">📥 ייצוא CSV</button>
       <button onclick="sortTable('created_at')">📅 תאריך</button>
       <button onclick="sortTable('priority')">⬆️ עדיפות</button>
-      <button onclick="sortTable('status')">📊 סטטוס</button>
     </div>
   </div>
 
@@ -312,11 +412,13 @@
     <thead>
       <tr>
         <th>לקוח</th>
+        <th>טלפון</th>
         <th>נושא</th>
+        <th>קטגוריה</th>
         <th>עדיפות</th>
         <th>סטטוס</th>
-        <th>נפתחה</th>
-        <th></th>
+        <th>זמן</th>
+        <th>פעולות</th>
       </tr>
     </thead>
     <tbody id="rows"></tbody>
@@ -333,10 +435,12 @@ const db = supabase.createClient(
 const rows = document.getElementById('rows');
 const msg = document.getElementById('msg');
 const searchBox = document.getElementById('search');
+const statsDiv = document.getElementById('stats');
 const esc = s => String(s ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 
 let allTickets = [];
 let currentSort = 'created_at';
+let currentStatusFilter = 'all';
 
 function showMessage(text, type = 'error') {
   msg.textContent = text;
@@ -357,23 +461,75 @@ function initTheme() {
   document.documentElement.setAttribute('data-theme', saved);
 }
 
+function getTimeElapsed(date) {
+  const now = new Date();
+  const then = new Date(date);
+  const diff = now - then;
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) return `${days} יום`;
+  if (hours > 0) return `${hours} שעות`;
+  return 'כעת';
+}
+
+function updateStats() {
+  const open = allTickets.filter(t => t.status !== 'סגור').length;
+  const closed = allTickets.filter(t => t.status === 'סגור').length;
+  const high = allTickets.filter(t => t.priority === 'גבוהה' && t.status !== 'סגור').length;
+
+  statsDiv.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-value">${allTickets.length}</div>
+      <div class="stat-label">סה"כ פניות</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${open}</div>
+      <div class="stat-label">פתוחות</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${closed}</div>
+      <div class="stat-label">סגורות</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${high}</div>
+      <div class="stat-label">עדיפות גבוהה</div>
+    </div>
+  `;
+}
+
 function filterAndDisplayTickets() {
   const query = searchBox.value.toLowerCase();
-  let filtered = allTickets.filter(t =>
-    t.customer_name.toLowerCase().includes(query) ||
-    t.subject.toLowerCase().includes(query) ||
-    t.priority.toLowerCase().includes(query)
-  );
+  let filtered = allTickets.filter(t => {
+    const matchesSearch =
+      t.customer_name.toLowerCase().includes(query) ||
+      (t.phone || '').toLowerCase().includes(query) ||
+      t.subject.toLowerCase().includes(query) ||
+      (t.category || '').toLowerCase().includes(query);
+
+    const matchesStatus = currentStatusFilter === 'all' || t.status === currentStatusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
 
   rows.innerHTML = filtered.length ? filtered.map(t => `
     <tr class="${esc(t.priority)}">
       <td>${esc(t.customer_name)}</td>
+      <td>${esc(t.phone || '-')}</td>
       <td>${esc(t.subject)}</td>
+      <td><span class="category-tag">${esc(t.category || 'ללא')}</span></td>
       <td>${esc(t.priority)}</td>
-      <td>${esc(t.status)}</td>
-      <td>${t.created_at ? new Date(t.created_at).toLocaleDateString('he-IL') : ''}</td>
-      <td>${t.status === 'סגור' ? '<span class="closed">✓ סגור</span>' : `<button onclick="close_(${t.id})">✓ סגור</button>`}</td>
-    </tr>`).join('') : '<tr><td colspan="6" class="empty-state">אין פניות להצגה</td></tr>';
+      <td><span class="status-badge status-${t.status}">${esc(t.status)}</span></td>
+      <td><span class="time-metric">${getTimeElapsed(t.created_at)}</span></td>
+      <td>
+        <select onchange="changeStatus(${t.id}, this.value)" style="padding:6px;font-size:12px;">
+          <option value="">בחר</option>
+          <option ${t.status === 'בטיפול' ? 'selected' : ''}>בטיפול</option>
+          <option ${t.status === 'ממתין' ? 'selected' : ''}>ממתין</option>
+          <option ${t.status === 'סגור' ? 'selected' : ''}>סגור</option>
+        </select>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="8" class="empty-state">אין פניות להצגה</td></tr>';
 }
 
 async function load() {
@@ -383,24 +539,58 @@ async function load() {
     return;
   }
   allTickets = data || [];
+  updateStats();
   filterAndDisplayTickets();
 }
 
-async function close_(id) {
-  const { error } = await db.from('tickets').update({ status: 'סגור' }).eq('id', id);
+async function changeStatus(id, newStatus) {
+  if (!newStatus) return;
+  const { error } = await db.from('tickets').update({ status: newStatus }).eq('id', id);
   if (error) {
     showMessage('שגיאה בעדכון: ' + error.message, 'error');
     return;
   }
-  showMessage('הפנייה סגורה בהצלחה', 'success');
+  showMessage('הסטטוס עודכן בהצלחה', 'success');
   load();
+}
+
+function filterStatus(status) {
+  currentStatusFilter = status;
+  document.querySelectorAll('.filter-controls button').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  filterAndDisplayTickets();
 }
 
 function sortTable(field) {
   currentSort = field;
-  document.querySelectorAll('.sort-controls button').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.action-controls button').forEach(btn => btn.classList.remove('active'));
   event.target.classList.add('active');
   load();
+}
+
+function exportCSV() {
+  const headers = ['שם לקוח', 'טלפון', 'נושא', 'קטגוריה', 'עדיפות', 'סטטוס', 'תאריך'];
+  const rows = allTickets.map(t => [
+    t.customer_name,
+    t.phone || '',
+    t.subject,
+    t.category || '',
+    t.priority,
+    t.status,
+    new Date(t.created_at).toLocaleDateString('he-IL')
+  ]);
+
+  let csv = headers.join(',') + '\n';
+  rows.forEach(row => {
+    csv += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',') + '\n';
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `tickets-${new Date().toLocaleDateString('he-IL')}.csv`;
+  link.click();
+  showMessage('הקובץ הורד בהצלחה', 'success');
 }
 
 document.getElementById('add').onsubmit = async e => {
