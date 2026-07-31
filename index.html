@@ -33,7 +33,7 @@
 
 <div class="card">
   <form id="add">
-    <input name="name_customer" placeholder="שם הלקוח" required>
+    <input name="customer_name" placeholder="שם הלקוח" required>
     <input name="subject" placeholder="נושא הפנייה" required>
     <select name="priority">
       <option>גבוהה</option><option selected>בינונית</option><option>נמוכה</option>
@@ -66,7 +66,7 @@ async function load() {
   msg.textContent = error ? 'שגיאה בטעינה: ' + error.message : '';
   rows.innerHTML = (data || []).map(t => `
     <tr class="${esc(t.priority)}">
-      <td>${esc(t.name_customer)}</td>
+      <td>${esc(t.customer_name)}</td>
       <td>${esc(t.subject)}</td>
       <td>${esc(t.priority)}</td>
       <td>${esc(t.status)}</td>
