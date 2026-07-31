@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketIQ - מערכת ניהול פניות</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a3a52 0%, #2c5aa0 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .form-section h2 {
+            color: #1a3a52;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .form-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-control {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-control label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-control input,
+        .form-control select {
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        .form-control input:focus,
+        .form-control select:focus {
+            outline: none;
+            border-color: #2c5aa0;
+            box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-start;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-close {
+            background: #ef4444;
+            color: white;
+            padding: 5px 12px;
+            font-size: 0.9em;
+        }
+
+        .btn-close:hover {
+            background: #dc2626;
+        }
+
+        .table-section h2 {
+            color: #1a3a52;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+        }
+
+        thead {
+            background: #f3f4f6;
+            border-bottom: 2px solid #d1d5db;
+        }
+
+        th {
+            padding: 15px;
+            text-align: right;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .priority-high {
+            background: #fee2e2;
+        }
+
+        .priority-medium {
+            background: #fed7aa;
+        }
+
+        .priority-low {
+            background: #dcfce7;
+        }
+
+        .status-open {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .status-closed {
+            color: #059669;
+            font-weight: 600;
+            text-decoration: line-through;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+            font-size: 1.1em;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #fecaca;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .action-cell {
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .form-group {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            table {
+                font-size: 0.85em;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>TicketIQ</h1>
+            <p>מערכת ניהול פניות לקוחות</p>
+        </div>
+
+        <div class="content">
+            <div id="message"></div>
+
+            <div class="form-section">
+                <h2>הוספת פנייה חדשה</h2>
+                <div class="form-group">
+                    <div class="form-control">
+                        <label for="customerName">שם הלקוח</label>
+                        <input type="text" id="customerName" placeholder="הכנס שם לקוח">
+                    </div>
+                    <div class="form-control">
+                        <label for="subject">נושא הפנייה</label>
+                        <input type="text" id="subject" placeholder="הכנס נושא">
+                    </div>
+                    <div class="form-control">
+                        <label for="priority">עדיפות</label>
+                        <select id="priority">
+                            <option value="">בחר עדיפות</option>
+                            <option value="גבוהה">גבוהה</option>
+                            <option value="בינונית">בינונית</option>
+                            <option value="נמוכה">נמוכה</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-add" onclick="addTicket()">הוסף פנייה</button>
+                </div>
+            </div>
+
+            <div class="table-section">
+                <h2>פניות פעילות</h2>
+                <div class="table-wrapper">
+                    <table id="ticketsTable">
+                        <thead>
+                            <tr>
+                                <th>מספר</th>
+                                <th>שם הלקוח</th>
+                                <th>נושא הפנייה</th>
+                                <th>עדיפות</th>
+                                <th>סטטוס</th>
+                                <th>תאריך</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketsBody">
+                            <tr>
+                                <td colspan="7" class="loading">טוען נתונים...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://skhuhvxqmawbjvifvxnz.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNraHVodnhxbWF3Ymp2aWZ2eG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0Nzc5OTAsImV4cCI6MjEwMTA1Mzk5MH0.Yq4uUfx6AmpkLhu7trFUVnhYYdANBLL-kyx85CST1AM';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function loadTickets() {
+            try {
+                const { data, error } = await supabase
+                    .from('tickets')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                displayTickets(data);
+            } catch (error) {
+                showMessage('שגיאה בטעינת הנתונים: ' + error.message, 'error');
+                document.getElementById('ticketsBody').innerHTML = '<tr><td colspan="7" class="error">שגיאה בטעינת הנתונים</td></tr>';
+            }
+        }
+
+        function displayTickets(tickets) {
+            const tbody = document.getElementById('ticketsBody');
+
+            if (tickets.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#6b7280;">אין פניות עדיין</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = tickets.map((ticket, index) => {
+                const priorityClass = `priority-${getPriorityClass(ticket.priority)}`;
+                const statusClass = ticket.status === 'סגור' ? 'status-closed' : 'status-open';
+                const statusText = ticket.status === 'סגור' ? 'סגור ✓' : 'פתוח';
+                const date = new Date(ticket.created_at).toLocaleDateString('he-IL');
+
+                return `
+                    <tr class="${priorityClass}">
+                        <td>${index + 1}</td>
+                        <td>${ticket.customer_name}</td>
+                        <td>${ticket.subject}</td>
+                        <td>${ticket.priority}</td>
+                        <td class="${statusClass}">${statusText}</td>
+                        <td>${date}</td>
+                        <td class="action-cell">
+                            ${ticket.status !== 'סגור' ? `<button class="btn btn-close" onclick="closeTicket(${ticket.id})">✓</button>` : '-'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getPriorityClass(priority) {
+            if (priority === 'גבוהה') return 'high';
+            if (priority === 'בינונית') return 'medium';
+            if (priority === 'נמוכה') return 'low';
+            return 'low';
+        }
+
+        async function addTicket() {
+            const customerName = document.getElementById('customerName').value.trim();
+            const subject = document.getElementById('subject').value.trim();
+            const priority = document.getElementById('priority').value;
+
+            if (!customerName || !subject || !priority) {
+                showMessage('אנא מלא את כל השדות', 'error');
+                return;
+            }
+
+            try {
+                const { error } = await supabase.from('tickets').insert([
+                    {
+                        customer_name: customerName,
+                        subject: subject,
+                        priority: priority,
+                        status: 'פתוח'
+                    }
+                ]);
+
+                if (error) throw error;
+
+                document.getElementById('customerName').value = '';
+                document.getElementById('subject').value = '';
+                document.getElementById('priority').value = '';
+
+                showMessage('הפנייה נוספה בהצלחה', 'success');
+                loadTickets();
+            } catch (error) {
+                showMessage('שגיאה בהוספת הפנייה: ' + error.message, 'error');
+            }
+        }
+
+        async function closeTicket(id) {
+            try {
+                const { error } = await supabase
+                    .from('tickets')
+                    .update({ status: 'סגור' })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showMessage('הפנייה סגורה בהצלחה', 'success');
+                loadTickets();
+            } catch (error) {
+                showMessage('שגיאה בסגירת הפנייה: ' + error.message, 'error');
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = type;
+            setTimeout(() => {
+                messageDiv.textContent = '';
+                messageDiv.className = '';
+            }, 4000);
+        }
+
+        loadTickets();
+    </script>
+</body>
+</html>
