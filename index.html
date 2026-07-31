@@ -6,30 +6,284 @@
 <title>TicketIQ — ניהול פניות לקוחות</title>
 <style>
   * { box-sizing: border-box; }
-  body { margin:0; padding:28px; font-family:"Segoe UI",Arial,sans-serif; background:#f4f6fa; color:#1c2333; }
-  h1 { margin:0 0 4px; font-size:28px; color:#1a3a8f; }
-  .sub { color:#6b7488; margin-bottom:22px; }
-  .card { background:#fff; border:1px solid #e2e6ee; border-radius:10px; padding:16px; margin-bottom:18px; }
-  form { display:flex; flex-wrap:wrap; gap:10px; }
-  input, select, button { font:inherit; padding:9px 12px; border:1px solid #e2e6ee; border-radius:8px; background:#fff; }
-  input { flex:1 1 200px; }
-  button { cursor:pointer; }
-  form button { background:#1a3a8f; color:#fff; border-color:#1a3a8f; }
-  table { width:100%; border-collapse:collapse; }
-  th, td { text-align:right; padding:11px; border-bottom:1px solid #e2e6ee; }
-  th { color:#6b7488; font-size:13px; font-weight:600; }
-  tr.גבוהה  td { background:#ffe3e3; }
-  tr.בינונית td { background:#ffe8cc; }
-  tr.נמוכה  td { background:#d3f9d8; }
-  td button { padding:5px 12px; font-size:13px; background:#fff; }
-  .closed { color:#6b7488; font-size:13px; }
-  .msg { color:#c92a2a; }
+
+  :root {
+    --primary: #1a3a8f;
+    --primary-light: #e3f2fd;
+    --bg: #f8f9fa;
+    --text: #1c2333;
+    --text-light: #6b7488;
+    --border: #e2e6ee;
+    --success: #10b981;
+    --danger: #ef4444;
+    --high: #fee2e2;
+    --medium: #fed7aa;
+    --low: #dcfce7;
+    --card-bg: #ffffff;
+  }
+
+  html[data-theme="dark"] {
+    --primary: #3b82f6;
+    --primary-light: #1e3a8a;
+    --bg: #0f172a;
+    --text: #f1f5f9;
+    --text-light: #cbd5e1;
+    --border: #334155;
+    --high: #7f1d1d;
+    --medium: #7c2d12;
+    --low: #065f46;
+    --card-bg: #1e293b;
+  }
+
+  body {
+    margin: 0;
+    padding: 28px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+
+  h1 {
+    margin: 0 0 4px;
+    font-size: 32px;
+    color: var(--primary);
+  }
+
+  .sub {
+    color: var(--text-light);
+    margin-bottom: 0;
+  }
+
+  .theme-toggle {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.3s;
+  }
+
+  .theme-toggle:hover {
+    opacity: 0.9;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .form-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  input, select, button {
+    font: inherit;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text);
+    transition: border-color 0.3s, background 0.3s;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+  }
+
+  input::placeholder {
+    color: var(--text-light);
+  }
+
+  input {
+    flex: 1 1 200px;
+  }
+
+  form button {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    cursor: pointer;
+    font-weight: 600;
+    padding: 12px 24px;
+    min-width: 140px;
+  }
+
+  form button:hover {
+    background: #0d47a1;
+  }
+
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .sort-controls {
+    display: flex;
+    gap: 8px;
+  }
+
+  .sort-controls button {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-color: var(--primary);
+    padding: 10px 14px;
+    font-size: 13px;
+    flex: 0 1 auto;
+  }
+
+  .sort-controls button.active {
+    background: var(--primary);
+    color: white;
+  }
+
+  .sort-controls button:hover {
+    background: var(--primary);
+    color: white;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    text-align: right;
+    padding: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    color: var(--text-light);
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--primary-light);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  th:hover {
+    background: var(--primary);
+    color: white;
+  }
+
+  tr.גבוהה td { background: var(--high); }
+  tr.בינונית td { background: var(--medium); }
+  tr.נמוכה td { background: var(--low); }
+
+  td button {
+    padding: 8px 14px;
+    font-size: 13px;
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s;
+  }
+
+  td button:hover {
+    background: #059669;
+  }
+
+  .closed {
+    color: var(--text-light);
+    font-size: 13px;
+  }
+
+  .msg {
+    color: var(--danger);
+    margin-bottom: 12px;
+    padding: 12px;
+    border-radius: 6px;
+  }
+
+  .msg.success {
+    color: var(--success);
+    background: var(--low);
+  }
+
+  .msg.error {
+    background: var(--high);
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--text-light);
+    padding: 40px 20px;
+  }
+
+  @media (max-width: 768px) {
+    .header {
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .form-group {
+      grid-template-columns: 1fr;
+    }
+
+    form {
+      flex-direction: column;
+    }
+
+    form input, form select, form button {
+      width: 100%;
+    }
+
+    .controls {
+      flex-direction: column;
+    }
+
+    .sort-controls {
+      width: 100%;
+    }
+  }
 </style>
 </head>
 <body>
 
-<h1>🎫 TicketIQ</h1>
-<div class="sub">מערכת לניהול פניות לקוחות</div>
+<div class="header">
+  <div>
+    <h1>🎫 TicketIQ</h1>
+    <div class="sub">מערכת לניהול פניות לקוחות</div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 ערכת נושא</button>
+</div>
 
 <div class="card">
   <form id="add">
@@ -38,14 +292,33 @@
     <select name="priority">
       <option>גבוהה</option><option selected>בינונית</option><option>נמוכה</option>
     </select>
-    <button>הוסף</button>
+    <button type="submit">➕ הוסף פנייה</button>
   </form>
 </div>
 
 <div class="card">
-  <div id="msg" class="msg"></div>
+  <div id="msg" class="msg" style="display:none;"></div>
+
+  <div class="controls">
+    <input type="text" id="search" class="search-box" placeholder="🔍 חפש לפי שם, נושא או עדיפות...">
+    <div class="sort-controls">
+      <button onclick="sortTable('created_at')">📅 תאריך</button>
+      <button onclick="sortTable('priority')">⬆️ עדיפות</button>
+      <button onclick="sortTable('status')">📊 סטטוס</button>
+    </div>
+  </div>
+
   <table>
-    <thead><tr><th>לקוח</th><th>נושא</th><th>עדיפות</th><th>סטטוס</th><th>נפתחה</th><th></th></tr></thead>
+    <thead>
+      <tr>
+        <th>לקוח</th>
+        <th>נושא</th>
+        <th>עדיפות</th>
+        <th>סטטוס</th>
+        <th>נפתחה</th>
+        <th></th>
+      </tr>
+    </thead>
     <tbody id="rows"></tbody>
   </table>
 </div>
@@ -59,25 +332,74 @@ const db = supabase.createClient(
 
 const rows = document.getElementById('rows');
 const msg = document.getElementById('msg');
+const searchBox = document.getElementById('search');
 const esc = s => String(s ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 
-async function load() {
-  const { data, error } = await db.from('tickets').select('*').order('created_at', { ascending: false });
-  msg.textContent = error ? 'שגיאה בטעינה: ' + error.message : '';
-  rows.innerHTML = (data || []).map(t => `
+let allTickets = [];
+let currentSort = 'created_at';
+
+function showMessage(text, type = 'error') {
+  msg.textContent = text;
+  msg.className = type;
+  msg.style.display = 'block';
+  setTimeout(() => { msg.style.display = 'none'; }, 4000);
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+}
+
+function filterAndDisplayTickets() {
+  const query = searchBox.value.toLowerCase();
+  let filtered = allTickets.filter(t =>
+    t.customer_name.toLowerCase().includes(query) ||
+    t.subject.toLowerCase().includes(query) ||
+    t.priority.toLowerCase().includes(query)
+  );
+
+  rows.innerHTML = filtered.length ? filtered.map(t => `
     <tr class="${esc(t.priority)}">
       <td>${esc(t.customer_name)}</td>
       <td>${esc(t.subject)}</td>
       <td>${esc(t.priority)}</td>
       <td>${esc(t.status)}</td>
       <td>${t.created_at ? new Date(t.created_at).toLocaleDateString('he-IL') : ''}</td>
-      <td>${t.status === 'סגור' ? '<span class="closed">—</span>' : `<button onclick="close_(${t.id})">✓ סגור</button>`}</td>
-    </tr>`).join('') || '<tr><td colspan="6">אין פניות להצגה</td></tr>';
+      <td>${t.status === 'סגור' ? '<span class="closed">✓ סגור</span>' : `<button onclick="close_(${t.id})">✓ סגור</button>`}</td>
+    </tr>`).join('') : '<tr><td colspan="6" class="empty-state">אין פניות להצגה</td></tr>';
+}
+
+async function load() {
+  const { data, error } = await db.from('tickets').select('*').order(currentSort, { ascending: currentSort === 'created_at' ? false : true });
+  if (error) {
+    showMessage('שגיאה בטעינה: ' + error.message, 'error');
+    return;
+  }
+  allTickets = data || [];
+  filterAndDisplayTickets();
 }
 
 async function close_(id) {
   const { error } = await db.from('tickets').update({ status: 'סגור' }).eq('id', id);
-  if (error) msg.textContent = 'שגיאה בעדכון: ' + error.message;
+  if (error) {
+    showMessage('שגיאה בעדכון: ' + error.message, 'error');
+    return;
+  }
+  showMessage('הפנייה סגורה בהצלחה', 'success');
+  load();
+}
+
+function sortTable(field) {
+  currentSort = field;
+  document.querySelectorAll('.sort-controls button').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
   load();
 }
 
@@ -85,11 +407,18 @@ document.getElementById('add').onsubmit = async e => {
   e.preventDefault();
   const t = Object.fromEntries(new FormData(e.target));
   const { error } = await db.from('tickets').insert({ ...t, status: 'פתוח' });
-  if (error) return msg.textContent = 'שגיאה בהוספה: ' + error.message;
+  if (error) {
+    showMessage('שגיאה בהוספה: ' + error.message, 'error');
+    return;
+  }
+  showMessage('הפנייה נוספה בהצלחה', 'success');
   e.target.reset();
   load();
 };
 
+searchBox.addEventListener('input', filterAndDisplayTickets);
+
+initTheme();
 load();
 </script>
 </body>
